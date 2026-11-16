@@ -23,6 +23,9 @@
   --accent-fg: #131A2F;
   --gold: #C4A55A;
   --chip-on: #131A2F;
+  --chip-bg: #F5EEDC;
+  --chip-line: #E2CB8F;
+  --chip-hover: #EFE3C4;
   --chip-on-fg: #ffffff;
   --ok: #1f7a4d;
   --warn-bg: #F5EEDC;
@@ -36,13 +39,13 @@
   :root:not([data-theme="light"]) {
     --brand: #0c111f; --bg: #10162a; --surface: #182038; --fg: #eef1f8; --muted: #a3abbf; --line: #2a3350;
     --accent: #D6BB76; --accent-soft: #2b2a24; --accent-fg: #131A2F; --gold: #D6BB76;
-    --chip-on: #D6BB76; --chip-on-fg: #131A2F; --ok: #5fd39a; --warn-bg: #2b2a24; --warn-fg: #e2cb8f; --code-bg: #10162a; color-scheme: dark;
+    --chip-on: #D6BB76; --chip-on-fg: #131A2F; --chip-bg: #232c47; --chip-line: #4a5578; --chip-hover: #2c3655; --ok: #5fd39a; --warn-bg: #2b2a24; --warn-fg: #e2cb8f; --code-bg: #10162a; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --brand: #0c111f; --bg: #10162a; --surface: #182038; --fg: #eef1f8; --muted: #a3abbf; --line: #2a3350;
   --accent: #D6BB76; --accent-soft: #2b2a24; --accent-fg: #131A2F; --gold: #D6BB76;
-  --chip-on: #D6BB76; --chip-on-fg: #131A2F; --ok: #5fd39a; --warn-bg: #2b2a24; --warn-fg: #e2cb8f; --code-bg: #10162a; color-scheme: dark;
+  --chip-on: #D6BB76; --chip-on-fg: #131A2F; --chip-bg: #232c47; --chip-line: #4a5578; --chip-hover: #2c3655; --ok: #5fd39a; --warn-bg: #2b2a24; --warn-fg: #e2cb8f; --code-bg: #10162a; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
@@ -66,8 +69,8 @@ input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px s
 .row { display: grid; grid-template-columns: 2fr 1fr 1.3fr; gap: 12px; }
 @media (max-width: 560px) { .row { grid-template-columns: 1fr 1fr; } .row .f-prod { grid-column: 1 / -1; } }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 999px; padding: 7px 13px; cursor: pointer; }
-.chip:hover { border-color: var(--accent); }
+.chip { font: inherit; font-size: 14px; font-weight: 600; border: 1.5px solid var(--chip-line); background: var(--chip-bg); color: var(--fg); border-radius: 999px; padding: 7px 13px; cursor: pointer; }
+.chip:hover { border-color: var(--gold); background: var(--chip-hover); }
 .chip[aria-pressed="true"] { background: var(--chip-on); border-color: var(--chip-on); color: var(--chip-on-fg); }
 .chip small { font-family: var(--f-mono); font-size: 11px; opacity: .75; margin-left: 4px; }
 .note { background: var(--warn-bg); color: var(--warn-fg); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
@@ -131,6 +134,7 @@ details ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
             <option value="masterclass">Masterclass</option>
             <option value="przeglad">Przegląd</option>
             <option value="scoreup">ScoreUp</option>
+            <option value="portfel_kariery">Portfel kariery</option>
             <option value="pcd">Portfolio Career Design</option>
             <option value="__inne">Inne (wpiszę)</option>
           </select>
@@ -193,6 +197,7 @@ details ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
 <script>
 const BASES = [
   { label: "Masterclass PL", url: "https://aniaschmidt.com/pl/masterclass/" },
+  { label: "Portfel kariery PL", url: "https://aniaschmidt.com/pl/portfel-kariery/" },
   { label: "Strona główna", url: "https://aniaschmidt.com/" }
 ];
 const CHANNELS = [
@@ -202,6 +207,7 @@ const CHANNELS = [
   { id: "ig_story", label: "Instagram: relacja / post", source: "instagram", medium: "organic_social", hint: "np. story_2611", prefix: "story_" },
   { id: "fb", label: "Facebook: post / grupa", source: "facebook", medium: "organic_social", hint: "np. grupa_kobiety_w_it", prefix: "post_" },
   { id: "yt", label: "YouTube: opis filmu", source: "youtube", medium: "organic_social", hint: "np. film_zmiana_kariery", prefix: "film_" },
+  { id: "tt", label: "TikTok: bio / film", source: "tiktok", medium: "organic_social", hint: "np. bio albo film_zmiana_kariery", prefix: "film_" },
   { id: "mail", label: "Newsletter / mail", source: "newsletter", medium: "email", hint: "np. mail_2611_przypomnienie", prefix: "mail_" }
 ];
 const $ = (id) => document.getElementById(id);
@@ -288,7 +294,13 @@ document.addEventListener("click", (e) => {
   if (cp) copyText(cp.dataset.copy, cp.closest("tr").querySelector(".mono"));
 });
 ["base","product","productOther","market","date","content"].forEach((id) => $(id).addEventListener("input", build));
-$("product").addEventListener("change", () => { $("productOther").hidden = $("product").value !== "__inne"; build(); });
+const PRODUCT_URL = { masterclass: BASES[0].url, portfel_kariery: BASES[1].url };
+$("product").addEventListener("change", () => {
+  const v = $("product").value;
+  $("productOther").hidden = v !== "__inne";
+  if (PRODUCT_URL[v] && BASES.some((b) => b.url === $("base").value.trim())) $("base").value = PRODUCT_URL[v];
+  build();
+});
 $("content").addEventListener("blur", () => { $("content").value = clean($("content").value); build(); });
 $("form").addEventListener("submit", (e) => e.preventDefault());
 $("copy").addEventListener("click", () => current && copyText(current.url));
