@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Kreator linków UTM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Układ: jedna kolumna narzędzia — formularz krok po kroku, wynik przyklejony pod spodem, niżej wspólna lista linków */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5d6676;
+  --line: #dde1e8;
+  --accent: #2f5bd3;
+  --accent-soft: #e8eefc;
+  --accent-fg: #ffffff;
+  --ok: #1f7a4d;
+  --warn-bg: #fff6e0;
+  --warn-fg: #7a5600;
+  --code-bg: #eef1f6;
+  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --fg: #e6e9ef; --muted: #9aa3b2; --line: #2c3442;
+    --accent: #7d9bff; --accent-soft: #1f2a46; --accent-fg: #0d1220; --ok: #5fd39a;
+    --warn-bg: #3a2f12; --warn-fg: #f2cf7a; --code-bg: #232b37; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --fg: #e6e9ef; --muted: #9aa3b2; --line: #2c3442;
+  --accent: #7d9bff; --accent-soft: #1f2a46; --accent-fg: #0d1220; --ok: #5fd39a;
+  --warn-bg: #3a2f12; --warn-fg: #f2cf7a; --code-bg: #232b37; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+h1 { font-family: var(--f-display); font-size: 28px; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-family: var(--f-display); font-size: 17px; margin: 0; }
+.lead { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 20px; }
+.field { display: grid; gap: 8px; min-width: 0; }
+.label { font-weight: 600; font-size: 14px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.label .param { font-family: var(--f-mono); font-size: 12px; font-weight: 400; color: var(--muted); }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+input[type=text], input[type=url], input[type=date], select {
+  font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 9px 11px; width: 100%; min-width: 0;
+}
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row { display: grid; grid-template-columns: 2fr 1fr 1.3fr; gap: 12px; }
+@media (max-width: 560px) { .row { grid-template-columns: 1fr 1fr; } .row .f-prod { grid-column: 1 / -1; } }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 999px; padding: 7px 13px; cursor: pointer; }
+.chip:hover { border-color: var(--accent); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.chip small { font-family: var(--f-mono); font-size: 11px; opacity: .75; margin-left: 4px; }
+.note { background: var(--warn-bg); color: var(--warn-fg); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
+.result { background: var(--surface); border: 2px solid var(--accent); border-radius: 10px; padding: 18px 20px; display: grid; gap: 14px; }
+.url { font-family: var(--f-mono); font-size: 13.5px; background: var(--code-bg); border-radius: 7px; padding: 12px; word-break: break-all; user-select: all; min-width: 0; }
+.url .k { color: var(--muted); }
+.url .v { color: var(--accent); font-weight: 500; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn { font: inherit; font-weight: 600; border-radius: 7px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-fg); }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.status { font-size: 13px; color: var(--ok); }
+.status.err { color: var(--warn-fg); }
+.params { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 13px; margin: 0; }
+.params dt { font-family: var(--f-mono); color: var(--muted); }
+.params dd { margin: 0; font-family: var(--f-mono); word-break: break-all; min-width: 0; }
+.list-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+td.mono { font-family: var(--f-mono); }
+td .small { color: var(--muted); font-size: 12px; }
+.linkbtn { font: inherit; font-size: 12px; background: none; border: none; color: var(--accent); cursor: pointer; padding: 0 6px 0 0; }
+.empty { color: var(--muted); font-size: 14px; padding: 6px 0; }
+details { font-size: 14px; }
+details summary { cursor: pointer; font-weight: 600; }
+details ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { .chip, .btn { transition: background .12s, border-color .12s; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Kreator linków UTM</h1>
+    <p class="lead">Wybierz stronę, kanał i akcję. Link z oznaczeniem tworzy się sam. Skopiuj go do posta albo maila. Zapisane linki zostają w tej przeglądarce.</p>
+  </header>
+
+  <form class="panel" id="form" autocomplete="off">
+    <div class="field">
+      <label class="label" for="base">1. Strona, na którą prowadzi link</label>
+      <input type="url" id="base" value="https://aniaschmidt.com/pl/masterclass/" spellcheck="false">
+      <div class="chips" id="baseChips"></div>
+    </div>
+
+    <div class="field">
+      <span class="label">2. Gdzie wrzucasz link <span class="param">utm_source + utm_medium</span></span>
+      <div class="chips" id="channelChips" role="group" aria-label="Kanał"></div>
+      <p class="note">Reklam Meta i Google tu nie oznaczamy: Meta ustawia Łukasz, Google i YouTube ustawia Paweł. Nie oznaczamy też linków wewnątrz strony, np. do Calendly.</p>
+    </div>
+
+    <div class="field">
+      <span class="label">3. Co promujesz <span class="param">utm_campaign = produkt_rynek_DDMM</span></span>
+      <div class="row">
+        <div class="field f-prod">
+          <label class="hint" for="product">Produkt / akcja</label>
+          <select id="product">
+            <option value="masterclass">Masterclass</option>
+            <option value="przeglad">Przegląd</option>
+            <option value="scoreup">ScoreUp</option>
+            <option value="pcd">Portfolio Career Design</option>
+            <option value="__inne">Inne (wpiszę)</option>
+          </select>
+          <input type="text" id="productOther" placeholder="np. webinar_kariera" hidden>
+        </div>
+        <div class="field">
+          <label class="hint" for="market">Rynek</label>
+          <select id="market"><option value="pl">PL</option><option value="en">EN</option></select>
+        </div>
+        <div class="field">
+          <label class="hint" for="date">Data wydarzenia</label>
+          <input type="date" id="date">
+        </div>
+      </div>
+      <p class="hint">Jedna akcja ma jedną nazwę we wszystkich kanałach. Ten sam masterclass = ta sama data wszędzie.</p>
+    </div>
+
+    <div class="field">
+      <label class="label" for="content">4. Który to post lub mail <span class="param">utm_content</span></label>
+      <input type="text" id="content" placeholder="np. post_historia_klientki">
+      <p class="hint" id="contentHint">Krótko, po czym rozpoznasz ten konkretny wpis.</p>
+    </div>
+  </form>
+
+  <section class="result" aria-live="polite">
+    <h2>Twój link</h2>
+    <div class="url" id="url"></div>
+    <dl class="params" id="params"></dl>
+    <div class="actions">
+      <button class="btn primary" type="button" id="copy">Kopiuj link</button>
+      <button class="btn ghost" type="button" id="save" disabled>Zapisz na liście</button>
+      <span class="status" id="status"></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="list-head">
+      <h2>Twoje zapisane linki</h2>
+      <span class="actions"><span class="hint" id="listInfo"></span><button class="btn ghost" type="button" id="copyAll" hidden>Kopiuj wszystkie do arkusza</button></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Kanał</th><th>Kampania</th><th>Treść</th><th>Dodano</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="empty" hidden>Lista jest pusta. Kliknij „Zapisz na liście”, a link pojawi się tutaj. Lista zostaje tylko w tej przeglądarce.</p>
+  </section>
+
+  <details class="panel">
+    <summary>Zasady w skrócie</summary>
+    <ul>
+      <li>Małe litery, bez polskich znaków i spacji. Kreator poprawia to sam.</li>
+      <li>Każdy link do strony w poście, bio, opisie filmu czy mailu ma swoje oznaczenie.</li>
+      <li>Jeśli nie wiesz, jak coś oznaczyć, napisz do Pawła przed publikacją.</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+const BASES = [
+  { label: "Masterclass PL", url: "https://aniaschmidt.com/pl/masterclass/" },
+  { label: "Strona główna", url: "https://aniaschmidt.com/" }
+];
+const CHANNELS = [
+  { id: "li_post", label: "LinkedIn: post", source: "linkedin", medium: "organic_social", hint: "np. post_2611 albo post_historia_klientki", prefix: "post_" },
+  { id: "li_dm", label: "LinkedIn: wiadomość", source: "linkedin", medium: "organic_social", hint: "np. dm_zaproszenie", prefix: "dm_" },
+  { id: "ig_bio", label: "Instagram: bio", source: "instagram", medium: "organic_social", hint: "bio", prefix: "bio" },
+  { id: "ig_story", label: "Instagram: relacja / post", source: "instagram", medium: "organic_social", hint: "np. story_2611", prefix: "story_" },
+  { id: "fb", label: "Facebook: post / grupa", source: "facebook", medium: "organic_social", hint: "np. grupa_kobiety_w_it", prefix: "post_" },
+  { id: "yt", label: "YouTube: opis filmu", source: "youtube", medium: "organic_social", hint: "np. film_zmiana_kariery", prefix: "film_" },
+  { id: "mail", label: "Newsletter / mail", source: "newsletter", medium: "email", hint: "np. mail_2611_przypomnienie", prefix: "mail_" }
+];
+const $ = (id) => document.getElementById(id);
+const PL = { "ą":"a","ć":"c","ę":"e","ł":"l","ń":"n","ó":"o","ś":"s","ź":"z","ż":"z" };
+function clean(s) {
+  return String(s || "").toLowerCase()
+    .replace(/[ąćęłńóśźż]/g, (c) => PL[c])
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9_-]+/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
+}
+function ddmm(v) { if (!v) return ""; const [, m, d] = v.split("-"); return d + m; }
+function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+let channel = CHANNELS[0];
+let current = null;
+
+// Data domyślna: dzisiaj
+(function () { const t = new Date(); const p = (n) => String(n).padStart(2, "0"); $("date").value = t.getFullYear() + "-" + p(t.getMonth() + 1) + "-" + p(t.getDate()); })();
+$("content").value = "post_historia_klientki";
+
+function renderChips() {
+  $("baseChips").innerHTML = BASES.map((b, i) => `<button type="button" class="chip" data-base="${i}">${esc(b.label)}</button>`).join("");
+  $("channelChips").innerHTML = CHANNELS.map((c) =>
+    `<button type="button" class="chip" data-ch="${c.id}" aria-pressed="${c.id === channel.id}">${esc(c.label)}<small>${c.source}</small></button>`).join("");
+}
+
+function build() {
+  const product = $("product").value === "__inne" ? clean($("productOther").value) : $("product").value;
+  const campaign = [product, $("market").value, ddmm($("date").value)].filter(Boolean).join("_");
+  const content = clean($("content").value);
+  const p = { utm_source: channel.source, utm_medium: channel.medium, utm_campaign: campaign, utm_content: content };
+  let raw = $("base").value.trim();
+  if (raw && !/^https?:\/\//i.test(raw)) raw = "https://" + raw;
+  let u;
+  try { u = new URL(raw); } catch (e) { u = null; }
+  const missing = !product || !content;
+  if (!u) {
+    $("url").textContent = "Wpisz poprawny adres strony, np. https://aniaschmidt.com/pl/masterclass/";
+    current = null;
+  } else {
+    ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"].forEach((k) => u.searchParams.delete(k));
+    Object.entries(p).forEach(([k, v]) => { if (v) u.searchParams.set(k, v); });
+    const full = u.toString();
+    const q = full.indexOf("?");
+    const head = full.slice(0, q);
+    const hashAt = full.indexOf("#");
+    const query = full.slice(q + 1, hashAt > -1 ? hashAt : undefined);
+    const hash = hashAt > -1 ? full.slice(hashAt) : "";
+    $("url").innerHTML = esc(head) + "?" + query.split("&").map((kv) => {
+      const [k, v] = kv.split("="); return `<span class="k">${esc(k)}=</span><span class="v">${esc(v || "")}</span>`;
+    }).join('<span class="k">&amp;</span>') + esc(hash);
+    current = missing ? null : { url: full, base: head, ...p };
+  }
+  $("params").innerHTML = Object.entries(p).map(([k, v]) => `<dt>${k}</dt><dd>${v ? esc(v) : "<em>uzupełnij</em>"}</dd>`).join("");
+  $("copy").disabled = !current;
+  $("save").disabled = !current || !db;
+  $("contentHint").textContent = "Krótko, po czym rozpoznasz ten wpis. " + channel.hint + ".";
+}
+
+function flash(msg, err) { const s = $("status"); s.textContent = msg; s.className = "status" + (err ? " err" : ""); clearTimeout(flash.t); flash.t = setTimeout(() => (s.textContent = ""), 3500); }
+
+async function copyText(text, el) {
+  try { await navigator.clipboard.writeText(text); flash("Skopiowano."); }
+  catch (e) {
+    const r = document.createRange(); r.selectNodeContents(el || $("url"));
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    flash("Link zaznaczony, naciśnij Ctrl+C.", true);
+  }
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-base]");
+  if (b) { $("base").value = BASES[+b.dataset.base].url; build(); }
+  const c = e.target.closest("[data-ch]");
+  if (c) {
+    channel = CHANNELS.find((x) => x.id === c.dataset.ch);
+    renderChips();
+    const cur = clean($("content").value);
+    if (!cur || CHANNELS.some((x) => cur.startsWith(x.prefix))) $("content").value = channel.prefix === "bio" ? "bio" : channel.prefix;
+    build();
+    $("content").focus();
+  }
+  const cp = e.target.closest("[data-copy]");
+  if (cp) copyText(cp.dataset.copy, cp.closest("tr").querySelector(".mono"));
+});
+["base","product","productOther","market","date","content"].forEach((id) => $(id).addEventListener("input", build));
+$("product").addEventListener("change", () => { $("productOther").hidden = $("product").value !== "__inne"; build(); });
+$("content").addEventListener("blur", () => { $("content").value = clean($("content").value); build(); });
+$("form").addEventListener("submit", (e) => e.preventDefault());
+$("copy").addEventListener("click", () => current && copyText(current.url));
+
+// Ostatnie linki — zapisywane tylko w tej przeglądarce
+const KEY = "kreator_utm_linki";
+let rows = [];
+function load() { try { rows = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { rows = []; } }
+function store() { try { localStorage.setItem(KEY, JSON.stringify(rows)); return true; } catch (e) { return false; } }
+function chLabel(r) { const c = CHANNELS.find((x) => x.source === r.utm_source && x.medium === r.utm_medium); return c ? c.label.split(":")[0] : r.utm_source; }
+function renderRows() {
+  $("empty").hidden = rows.length > 0;
+  $("listInfo").textContent = rows.length ? rows.length + (rows.length === 1 ? " link" : " linków") : "";
+  $("copyAll").hidden = !rows.length;
+  $("rows").innerHTML = rows.map((r, i) => {
+    const when = new Date(r.createdAt).toLocaleDateString("pl-PL", { day: "2-digit", month: "2-digit" });
+    return `<tr>
+      <td>${esc(chLabel(r))}<div class="small">${esc(r.utm_medium)}</div></td>
+      <td class="mono">${esc(r.utm_campaign)}</td>
+      <td class="mono">${esc(r.utm_content)}</td>
+      <td>${when}</td>
+      <td><button class="linkbtn" data-copy="${esc(r.url)}">Kopiuj</button><button class="linkbtn" data-del="${i}">Usuń</button></td>
+    </tr>`;
+  }).join("");
+}
+document.addEventListener("click", (e) => {
+  const d = e.target.closest("[data-del]");
+  if (!d) return;
+  if (d.dataset.armed !== "1") { d.dataset.armed = "1"; d.textContent = "Na pewno?"; return; }
+  rows.splice(+d.dataset.del, 1); store(); renderRows();
+});
+$("save").addEventListener("click", () => {
+  if (!current) return;
+  if (rows.some((r) => r.url === current.url)) { flash("Ten link już jest na liście."); return; }
+  rows.unshift({ ...current, createdAt: Date.now() });
+  flash(store() ? "Zapisano." : "Przeglądarka nie pozwala zapisać listy, ale link możesz skopiować.", !store());
+  renderRows();
+});
+$("copyAll").addEventListener("click", () => {
+  const text = rows.map((r) => [new Date(r.createdAt).toLocaleDateString("pl-PL"), r.utm_source, r.utm_campaign, r.utm_content, r.url].join("\t")).join("\n");
+  copyText(text, $("rows"));
+});
+let db = true;
+load(); renderChips(); build(); renderRows();
+</script>
+</body>
+</html>
