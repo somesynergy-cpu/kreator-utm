@@ -255,7 +255,7 @@ let current = null;
 function renderChips() {
   $("baseChips").innerHTML = BASES.map((b, i) => `<button type="button" class="chip" data-base="${i}">${esc(b.label)}</button>`).join("");
   $("channelChips").innerHTML = CHANNELS.map((c) =>
-    `<button type="button" class="chip" data-ch="${c.id}" aria-pressed="${c.id === channel.id}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="--ic:${ICONS[c.icon].c}"><path d="${ICONS[c.icon].d}"/></svg>${esc(c.label)}<small>${c.source}</small></button>`).join("");
+    `<button type="button" class="chip" data-ch="${c.id}" aria-pressed="${c.id === channel.id}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="--ic:${ICONS[c.icon].c}"><path d="${ICONS[c.icon].d}"/></svg>${esc(c.label)}</button>`).join("");
 }
 
 function build() {
