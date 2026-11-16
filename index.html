@@ -6,43 +6,53 @@
 <meta name="robots" content="noindex">
 <title>Kreator linków UTM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Momo+Trust+Display&family=Nunito:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="icon" href="logo.png">
 <style>
-/* Układ: jedna kolumna narzędzia — formularz krok po kroku, wynik przyklejony pod spodem, niżej wspólna lista linków */
+/* Układ: granatowy pasek marki z logo, pod nim jedna kolumna narzędzia; kolory i fonty z aniaschmidt.com */
 :root {
-  --bg: #f5f6f8;
+  --brand: #131A2F;
+  --brand-fg: #ffffff;
+  --bg: #F1F5FB;
   --surface: #ffffff;
-  --fg: #1b2230;
-  --muted: #5d6676;
-  --line: #dde1e8;
-  --accent: #2f5bd3;
-  --accent-soft: #e8eefc;
-  --accent-fg: #ffffff;
+  --fg: #131A2F;
+  --muted: #5E667A;
+  --line: #E3E6EE;
+  --accent: #8F7333;
+  --accent-soft: #F5EEDC;
+  --accent-fg: #131A2F;
+  --gold: #C4A55A;
+  --chip-on: #131A2F;
+  --chip-on-fg: #ffffff;
   --ok: #1f7a4d;
-  --warn-bg: #fff6e0;
-  --warn-fg: #7a5600;
-  --code-bg: #eef1f6;
-  --f-display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
-  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --warn-bg: #F5EEDC;
+  --warn-fg: #6b5426;
+  --code-bg: #F1F5FB;
+  --f-display: "Momo Trust Display", "Nunito", system-ui, sans-serif;
+  --f-body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #12161d; --surface: #1a2029; --fg: #e6e9ef; --muted: #9aa3b2; --line: #2c3442;
-    --accent: #7d9bff; --accent-soft: #1f2a46; --accent-fg: #0d1220; --ok: #5fd39a;
-    --warn-bg: #3a2f12; --warn-fg: #f2cf7a; --code-bg: #232b37; color-scheme: dark;
+    --brand: #0c111f; --bg: #10162a; --surface: #182038; --fg: #eef1f8; --muted: #a3abbf; --line: #2a3350;
+    --accent: #D6BB76; --accent-soft: #2b2a24; --accent-fg: #131A2F; --gold: #D6BB76;
+    --chip-on: #D6BB76; --chip-on-fg: #131A2F; --ok: #5fd39a; --warn-bg: #2b2a24; --warn-fg: #e2cb8f; --code-bg: #10162a; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #12161d; --surface: #1a2029; --fg: #e6e9ef; --muted: #9aa3b2; --line: #2c3442;
-  --accent: #7d9bff; --accent-soft: #1f2a46; --accent-fg: #0d1220; --ok: #5fd39a;
-  --warn-bg: #3a2f12; --warn-fg: #f2cf7a; --code-bg: #232b37; color-scheme: dark;
+  --brand: #0c111f; --bg: #10162a; --surface: #182038; --fg: #eef1f8; --muted: #a3abbf; --line: #2a3350;
+  --accent: #D6BB76; --accent-soft: #2b2a24; --accent-fg: #131A2F; --gold: #D6BB76;
+  --chip-on: #D6BB76; --chip-on-fg: #131A2F; --ok: #5fd39a; --warn-bg: #2b2a24; --warn-fg: #e2cb8f; --code-bg: #10162a; color-scheme: dark;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+.topbar { background: var(--brand); border-bottom: 3px solid var(--gold); }
+.topbar-in { max-width: 760px; margin: 0 auto; padding-block: 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.topbar img { height: 34px; width: auto; display: block; }
+.topbar span { color: var(--gold); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 700; }
 .wrap { max-width: 760px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
-h1 { font-family: var(--f-display); font-size: 28px; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
-h2 { font-family: var(--f-display); font-size: 17px; margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 400; font-size: 32px; margin: 0; text-wrap: balance; letter-spacing: -0.02em; }
+h2 { font-family: var(--f-display); font-weight: 400; font-size: 20px; margin: 0; }
 .lead { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 20px; }
 .field { display: grid; gap: 8px; min-width: 0; }
@@ -58,16 +68,16 @@ input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px s
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 999px; padding: 7px 13px; cursor: pointer; }
 .chip:hover { border-color: var(--accent); }
-.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.chip[aria-pressed="true"] { background: var(--chip-on); border-color: var(--chip-on); color: var(--chip-on-fg); }
 .chip small { font-family: var(--f-mono); font-size: 11px; opacity: .75; margin-left: 4px; }
 .note { background: var(--warn-bg); color: var(--warn-fg); border-radius: 8px; padding: 10px 12px; font-size: 13px; }
-.result { background: var(--surface); border: 2px solid var(--accent); border-radius: 10px; padding: 18px 20px; display: grid; gap: 14px; }
+.result { background: var(--surface); border: 2px solid var(--gold); border-radius: 10px; padding: 18px 20px; display: grid; gap: 14px; }
 .url { font-family: var(--f-mono); font-size: 13.5px; background: var(--code-bg); border-radius: 7px; padding: 12px; word-break: break-all; user-select: all; min-width: 0; }
 .url .k { color: var(--muted); }
 .url .v { color: var(--accent); font-weight: 500; }
 .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .btn { font: inherit; font-weight: 600; border-radius: 7px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--accent); }
-.btn.primary { background: var(--accent); color: var(--accent-fg); }
+.btn.primary { background: var(--gold); border-color: var(--gold); color: var(--accent-fg); }
 .btn.ghost { background: transparent; color: var(--accent); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .status { font-size: 13px; color: var(--ok); }
@@ -92,9 +102,10 @@ details ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
 
 </head>
 <body>
+<div class="topbar"><div class="topbar-in"><img src="logo.png" alt="Ania Schmidt" width="192" height="46"><span>Kreator linków UTM</span></div></div>
 <div class="wrap">
   <header>
-    <h1>Kreator linków UTM</h1>
+    <h1>Oznacz link, zanim go opublikujesz</h1>
     <p class="lead">Wybierz stronę, kanał i akcję. Link z oznaczeniem tworzy się sam. Skopiuj go do posta albo maila. Zapisane linki zostają w tej przeglądarce.</p>
   </header>
 
