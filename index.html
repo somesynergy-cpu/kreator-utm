@@ -232,6 +232,12 @@ function build() {
   if (raw && !/^https?:\/\//i.test(raw)) raw = "https://" + raw;
   let u;
   try { u = new URL(raw); } catch (e) { u = null; }
+  // podświetl stronę z kroku 1, gdy adres to jedna z gotowych stron
+  document.querySelectorAll("[data-base]").forEach((b) => {
+    const t = new URL(BASES[+b.dataset.base].url);
+    const on = !!u && u.hostname.replace(/^www\./, "") === t.hostname && u.pathname.replace(/\/?$/, "/") === t.pathname;
+    b.setAttribute("aria-pressed", on);
+  });
   const campaign = campaignFromUrl(u);
   const content = clean($("content").value);
   const p = { utm_source: channel.source, utm_medium: channel.medium, utm_campaign: campaign, utm_content: content };
