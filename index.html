@@ -91,6 +91,8 @@ select:disabled { opacity: .55; cursor: not-allowed; background: var(--line); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .status { font-size: 13px; color: var(--ok); }
 .status.err { color: var(--warn-fg); }
+.short { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: var(--accent-soft); border-radius: 8px; padding: 10px 12px; }
+.short a { font-family: var(--f-mono); font-size: 14px; color: var(--fg); font-weight: 500; word-break: break-all; }
 .params { display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 13px; margin: 0; }
 .params dt { font-family: var(--f-mono); color: var(--muted); }
 .params dd { margin: 0; font-family: var(--f-mono); word-break: break-all; min-width: 0; }
@@ -144,9 +146,15 @@ details ul { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
     <dl class="params" id="params"></dl>
     <div class="actions">
       <button class="btn primary" type="button" id="copy">Kopiuj link</button>
+      <button class="btn ghost" type="button" id="shorten">Skróć link</button>
       <button class="btn ghost" type="button" id="save" disabled>Zapisz na liście</button>
       <span class="status" id="status"></span>
     </div>
+    <div class="short" id="shortBox" hidden>
+      <a id="shortUrl" href="#" target="_blank" rel="noopener"></a>
+      <button class="linkbtn" type="button" id="copyShort">Kopiuj krótki</button>
+    </div>
+    <p class="hint">Krótki link (is.gd) przydaje się w bio, relacjach i SMS-ach. W postach i mailach lepiej wklejać pełny. Oznaczenie działa tak samo w obu.</p>
   </section>
 
   <section class="panel">
@@ -247,6 +255,8 @@ function build() {
   }
   $("params").innerHTML = Object.entries(p).map(([k, v]) => `<dt>${k}</dt><dd>${v ? esc(v) : "<em>uzupełnij</em>"}</dd>`).join("");
   $("copy").disabled = !current;
+  $("shorten").disabled = !current;
+  showShort();
   $("save").disabled = !current || !db;
   $("contentHint").textContent = "Krótko, po czym rozpoznasz ten wpis. " + channel.hint + ".";
   $("content").placeholder = channel.hint;
@@ -281,6 +291,34 @@ $("content").addEventListener("blur", () => { $("content").value = clean($("cont
 $("form").addEventListener("submit", (e) => e.preventDefault());
 $("copy").addEventListener("click", () => current && copyText(current.url));
 
+// Skracanie przez is.gd (bez konta i klucza; ten sam długi link = ten sam krótki)
+const shorts = new Map();
+function showShort() {
+  const s = current && shorts.get(current.url);
+  $("shortBox").hidden = !s;
+  if (s) { $("shortUrl").textContent = s; $("shortUrl").href = s; }
+}
+async function shorten(url) {
+  if (shorts.has(url)) return shorts.get(url);
+  const r = await fetch("https://is.gd/create.php?format=json&url=" + encodeURIComponent(url));
+  const j = await r.json();
+  if (!j.shorturl) throw new Error(j.errormessage || "brak odpowiedzi");
+  shorts.set(url, j.shorturl);
+  return j.shorturl;
+}
+$("shorten").addEventListener("click", async () => {
+  if (!current) return;
+  const btn = $("shorten"); btn.disabled = true; btn.textContent = "Skracam…";
+  try {
+    const s = await shorten(current.url);
+    const saved = rows.find((r) => r.url === current.url);
+    if (saved && !saved.short) { saved.short = s; store(); renderRows(); }
+    showShort(); await copyText(s, $("shortUrl"));
+  } catch (e) { flash("Nie udało się skrócić (" + e.message + "). Spróbuj za chwilę albo użyj pełnego linku.", true); }
+  btn.textContent = "Skróć link"; btn.disabled = !current;
+});
+$("copyShort").addEventListener("click", () => copyText($("shortUrl").textContent, $("shortUrl")));
+
 // Ostatnie linki — zapisywane tylko w tej przeglądarce
 const KEY = "kreator_utm_linki";
 let rows = [];
@@ -298,7 +336,7 @@ function renderRows() {
       <td class="mono">${esc(r.utm_campaign)}</td>
       <td class="mono">${esc(r.utm_content)}</td>
       <td>${when}</td>
-      <td><button class="linkbtn" data-copy="${esc(r.url)}">Kopiuj</button><button class="linkbtn" data-del="${i}">Usuń</button></td>
+      <td><button class="linkbtn" data-copy="${esc(r.url)}">Kopiuj</button>${r.short ? `<button class="linkbtn" data-copy="${esc(r.short)}">Krótki</button>` : ""}<button class="linkbtn" data-del="${i}">Usuń</button></td>
     </tr>`;
   }).join("");
 }
@@ -311,12 +349,12 @@ document.addEventListener("click", (e) => {
 $("save").addEventListener("click", () => {
   if (!current) return;
   if (rows.some((r) => r.url === current.url)) { flash("Ten link już jest na liście."); return; }
-  rows.unshift({ ...current, createdAt: Date.now() });
+  rows.unshift({ ...current, short: shorts.get(current.url) || "", createdAt: Date.now() });
   flash(store() ? "Zapisano." : "Przeglądarka nie pozwala zapisać listy, ale link możesz skopiować.", !store());
   renderRows();
 });
 $("copyAll").addEventListener("click", () => {
-  const text = rows.map((r) => [new Date(r.createdAt).toLocaleDateString("pl-PL"), r.utm_source, r.utm_campaign, r.utm_content, r.url].join("\t")).join("\n");
+  const text = rows.map((r) => [new Date(r.createdAt).toLocaleDateString("pl-PL"), r.utm_source, r.utm_campaign, r.utm_content, r.url, r.short || ""].join("\t")).join("\n");
   copyText(text, $("rows"));
 });
 let db = true;
